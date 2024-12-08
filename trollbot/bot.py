@@ -75,11 +75,13 @@ class Bot:
             cmdfunc = self.commandbindings[cmd]
         except KeyError:
             self.unknownbinding(context, cmd)
+            return
         
         try:
             cmdfunc(context, *args)
         except TypeError as e:
             cmdfunc.errorfunc(context, e)
+            return
 
     ############################# 
 
@@ -117,14 +119,25 @@ class Bot:
     def send(self, message):
         self.socket.send(message)
 
-    def getUsers(self):
-        return [User(s, d, self) for s,d in self.rawuserlist.items()]
+    # def getUsers(self):
+    #     return [User(s, d, self) for s,d in self.rawuserlist.items()]
     
-    def getUser(self, home):
+    # def getUser(self, home):
+    #     for sid, data in self.rawuserlist.items():
+    #         if data["home"] == home:
+    #             return User(sid, data, self)
+
+    def getUsers(self, home=None, nick=None):
         for sid, data in self.rawuserlist.items():
-            if data["home"] == home:
-                return User(sid, data, self)
+            if home and not data["home"] == home:
+                continue
+
+            if nick and not data["nick"] == nick:
+                continue
+
+            yield User(sid, data, self)
     
+
     def connect(self, url=URL, headers=HEADERS, blocking=True):
         self.socket.connect(URL, headers=HEADERS)
         if blocking: self.socket.wait()

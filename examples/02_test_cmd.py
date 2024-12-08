@@ -1,6 +1,6 @@
 import trollbot
 
-bot = trollbot.Bot("TestBot [!test]", "#FF0000", "test!")
+bot = trollbot.Bot("TestBot [test!]", "#FF0000", "test!")
 
 @bot.event("ready")
 def funny():

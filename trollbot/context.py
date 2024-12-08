@@ -5,7 +5,7 @@ class MessageContext:
         self.bot = bot
 
         self.date = raw["date"]
-        self.user = self.bot.getUser(raw["home"])
+        self.user = next(self.bot.getUsers(home=raw["home"], nick=raw["nick"]))
         # self.color = raw["color"]
         # self.home = raw["home"]
         # self.style = raw["style"]
