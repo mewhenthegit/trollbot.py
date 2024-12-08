@@ -1,14 +1,16 @@
 from trollbot.headers import URL, HEADERS
 from trollbot.context import MessageContext
+from trollbot.user import User
 import socketio
 
 class Bot:
-    def __init__(self, name, style, prefix, verbose=True):
+    def __init__(self, name, color, prefix, isbot=True, verbose=True):
         self.socket = socketio.Client()
 
         self.name = name
-        self.style = style
+        self.color = color
         self.prefix = prefix
+        self.isbot = isbot
 
         self.verbose = True
 
@@ -22,23 +24,29 @@ class Bot:
         self.commandbindings = {}
         self.unknownbinding = blankfunc
 
+        self.rawuserlist = {}
+
         ############################################ SOCKETIO EVENTS SHIT
         # TODO: unshittify
         @self.socket.on("connect")
         def connect():
-            self.socket.emit("user joined", (self.name, self.style, "", ""))
-            if self.verbose:
-                print("Connected to server")
+            self.socket.emit("user joined", (self.name, self.color, "", ""))
+            if self.verbose: print("Connected to server")
 
         @self.socket.on("_connected")
         def _connected():
             self.eventbindings["ready"]()
-            if self.verbose:
-                print("Joined atrium")
+            if self.verbose: print("Joined atrium")
 
         @self.socket.on("message")
         def message(data):
             self.eventbindings["message"](data)
+
+        @self.socket.on("update users")
+        def update_users(data):
+            if self.verbose: print("User list updated")
+            self.rawuserlist = data
+            # print(self.rawuserlist)
         ############################################
 
     ############################# INTERAL FUNCTIONS
@@ -50,7 +58,7 @@ class Bot:
         tokens = data["msg"].split(" ")
         args = tokens[1:] if len(tokens) > 0 else []
         cmd = "".join(tokens[0].split(self.prefix))
-        context = MessageContext(data)
+        context = MessageContext(data, self)
 
         try:
             cmdfunc = self.commandbindings[cmd]
@@ -60,7 +68,6 @@ class Bot:
         try:
             cmdfunc(context, *args)
         except TypeError as e:
-            # raise NotImplementedError("Argument count mismatch has not yet been implemented unfortunately.")
             cmdfunc.errorfunc(context, e)
 
     ############################# 
@@ -99,8 +106,16 @@ class Bot:
     def send(self, message):
         self.socket.send(message)
 
-    #############################
+    def getUsers(self):
+        return [User(s, d, self) for s,d in self.rawuserlist.items()]
+    
+    def getUser(self, home):
+        for sid, data in self.rawuserlist.items():
+            if data["home"] == home:
+                return User(sid, data, self)
     
     def connect(self, url=URL, headers=HEADERS, blocking=True):
         self.socket.connect(URL, headers=HEADERS)
         if blocking: self.socket.wait()
+
+    #############################
