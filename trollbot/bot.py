@@ -4,15 +4,14 @@ from trollbot.user import User
 import socketio
 
 class Bot:
-    def __init__(self, name, color, prefix, isbot=True, verbose=True):
+    def __init__(self, name, color, prefix, verbose=True):
         self.socket = socketio.Client()
 
         self.name = name
         self.color = color
         self.prefix = prefix
-        self.isbot = isbot
 
-        self.verbose = True
+        self.verbose = verbose
 
         blankfunc = (lambda *args: None)
         self.eventbindings = {
