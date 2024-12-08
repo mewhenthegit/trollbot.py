@@ -17,7 +17,9 @@ class Bot:
         self.eventbindings = {
             "ready": blankfunc,
             "disconnect": blankfunc,
-            "message": self.process_commands
+            "message": self.process_commands,
+            "user join": blankfunc,
+            "user left": blankfunc
         }
 
         self.commandbindings = {}
@@ -36,6 +38,16 @@ class Bot:
         def _connected():
             self.eventbindings["ready"]()
             if self.verbose: print("Joined atrium")
+
+        # TODO: make user joined not suck
+        @self.socket.on("user joined")
+        def userjoined(data):
+            # self.eventbindings["user join"](self.getUser(data["home"]))
+            self.eventbindings["user join"](User(None, data, self))
+
+        @self.socket.on("user left")
+        def userleft(data):
+            self.eventbindings["user left"](User(None, data, self))
 
         @self.socket.on("message")
         def message(data):

@@ -12,6 +12,7 @@ python-socketio = "4.6.1"
 [tool.poetry.scripts]
 sample = "examples.01_sample:ignore"
 testcmd = "examples.02_test_cmd:ignore"
+welcome = "examples.03_welcome:ignore"
 
 [build-system]
 requires = ["poetry-core"]
